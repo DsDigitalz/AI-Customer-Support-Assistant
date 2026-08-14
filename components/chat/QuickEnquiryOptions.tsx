@@ -72,15 +72,69 @@ interface QuickEnquiryOptionsProps {
   onSelectOption: (prompt: string) => void;
   onPrefillOption?: (prompt: string) => void;
   isLoading: boolean;
+  /** When true, renders a full grid layout for the message feed area */
+  inlineFeed?: boolean;
 }
 
 export const QuickEnquiryOptions: React.FC<QuickEnquiryOptionsProps> = ({
   onSelectOption,
   onPrefillOption,
   isLoading,
+  inlineFeed = false,
 }) => {
+  // ── Compact horizontal strip (inside ChatInput footer) ──────────────────
+  if (!inlineFeed) {
+    return (
+      <div className="w-full space-y-1.5 mb-1 animate-fade-in">
+        <div className="flex items-center justify-between px-0.5">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+            Quick Enquiries
+          </span>
+          <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">
+            Click to send
+          </span>
+        </div>
+
+        {/* Horizontal scrollable pill strip on all screen sizes */}
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          {PREDEFINED_QUICK_OPTIONS.map((opt) => {
+            const Icon = opt.icon;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                disabled={isLoading}
+                onClick={() => onSelectOption(opt.prompt)}
+                className={`group flex items-center gap-1.5 shrink-0 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all duration-200 backdrop-blur-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${opt.bgColor} ${opt.borderColor}`}
+              >
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${opt.badgeColor}`} />
+                <span className="text-slate-200 whitespace-nowrap text-[11px]">
+                  {opt.title}
+                </span>
+                {onPrefillOption && (
+                  <span
+                    role="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPrefillOption(opt.prompt);
+                    }}
+                    title={`Edit "${opt.title}" prompt before sending`}
+                    className="ml-0.5 text-slate-400 hover:text-slate-200 cursor-pointer opacity-60 group-hover:opacity-100"
+                  >
+                    ✎
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Full grid layout (rendered inside the messages feed area) ────────────
   return (
-    <div className="w-full space-y-2 mb-2 animate-fade-in">
+    <div className="w-full space-y-2 animate-fade-in">
       <div className="flex items-center justify-between px-1">
         <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">
           Quick Enquiries
@@ -90,8 +144,7 @@ export const QuickEnquiryOptions: React.FC<QuickEnquiryOptionsProps> = ({
         </span>
       </div>
 
-      {/* Horizontal Scrollable Grid Container */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {PREDEFINED_QUICK_OPTIONS.map((opt) => {
           const Icon = opt.icon;
           return (
@@ -106,9 +159,7 @@ export const QuickEnquiryOptions: React.FC<QuickEnquiryOptionsProps> = ({
                 onClick={() => onSelectOption(opt.prompt)}
                 className="flex items-center gap-2.5 flex-1 text-left cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-w-0"
               >
-                <div
-                  className={`w-7 h-7 rounded-lg bg-slate-900/80 flex items-center justify-center shrink-0 border border-slate-800 shadow-inner`}
-                >
+                <div className="w-7 h-7 rounded-lg bg-slate-900/80 flex items-center justify-center shrink-0 border border-slate-800 shadow-inner">
                   <Icon className={`w-4 h-4 ${opt.badgeColor}`} />
                 </div>
                 <div className="min-w-0 flex-1">

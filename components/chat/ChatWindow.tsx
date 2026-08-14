@@ -19,6 +19,7 @@ import { TypingIndicator } from "./TypingIndicator";
 import { ErrorMessage } from "./ErrorMessage";
 import { ChatInput } from "./ChatInput";
 import { LeadCaptureForm } from "./LeadCaptureForm";
+import { QuickEnquiryOptions } from "./QuickEnquiryOptions";
 
 export const ChatWindow: React.FC = () => {
   const {
@@ -53,7 +54,7 @@ export const ChatWindow: React.FC = () => {
   }, [messages, isLoading, globalError, showLeadForm]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col h-[90vh] max-h-[850px] bg-slate-950/90 border border-slate-800 rounded-2xl shadow-2xl shadow-teal-950/20 overflow-hidden backdrop-blur-xl transition-all">
+    <div className="w-full max-w-4xl mx-auto flex flex-col h-[100dvh] sm:h-[90vh] sm:max-h-[850px] bg-slate-950/90 border border-slate-800 sm:rounded-2xl shadow-2xl shadow-teal-950/20 overflow-hidden backdrop-blur-xl transition-all">
       {/* Top Header */}
       <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-800/80 bg-slate-900/60 shrink-0">
         {/* Brand & Assistant Info */}
@@ -161,12 +162,23 @@ export const ChatWindow: React.FC = () => {
       </header>
 
       {/* Messages Feed Viewport */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent min-h-0">
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} onRetry={retryMessage} />
         ))}
 
         {isLoading && <TypingIndicator />}
+
+        {/* Quick Enquiry Options rendered inside the chat feed on mobile/initial state */}
+        {!showLeadForm && messages.length <= 2 && (
+          <div className="pt-2">
+            <QuickEnquiryOptions
+              onSelectOption={sendMessage}
+              isLoading={isLoading}
+              inlineFeed
+            />
+          </div>
+        )}
 
         {/* Conditional Lead Capture Form inside Chat Stream */}
         {showLeadForm && (
