@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Shield, Cpu, GraduationCap, Headphones, Pencil } from 'lucide-react';
+import React from "react";
+import { Shield, Cpu, GraduationCap, Headphones, Pencil } from "lucide-react";
 
 export interface QuickOption {
   id: string;
@@ -16,44 +16,55 @@ export interface QuickOption {
 
 export const PREDEFINED_QUICK_OPTIONS: QuickOption[] = [
   {
-    id: 'cybersecurity',
-    title: 'Cybersecurity Services',
-    prompt: 'Can you tell me more about Apexium Cybersecurity Services, penetration testing, and 24/7 SOC monitoring?',
+    id: "cybersecurity",
+    title: "What cybersecurity services do you offer?",
+    prompt: "What cybersecurity services do you offer?",
     icon: Shield,
-    badgeColor: 'text-teal-400',
-    borderColor: 'border-teal-500/30 hover:border-teal-400/60',
-    bgColor: 'bg-teal-950/40 hover:bg-teal-950/70',
-    description: 'Pen testing, SOC 24/7 & ISO compliance',
+    badgeColor: "text-teal-400",
+    borderColor: "border-teal-500/30 hover:border-teal-400/60",
+    bgColor: "bg-teal-950/40 hover:bg-teal-950/70",
+    description: "Pen testing, SOC 24/7 & ISO compliance",
   },
   {
-    id: 'technology',
-    title: 'Technology Services',
-    prompt: 'What Technology Services does Apexium offer for cloud migration and custom software development?',
+    id: "technology",
+    title: "Tell me about your technology solutions.",
+    prompt: "Tell me about your technology solutions.",
     icon: Cpu,
-    badgeColor: 'text-sky-400',
-    borderColor: 'border-sky-500/30 hover:border-sky-400/60',
-    bgColor: 'bg-sky-950/40 hover:bg-sky-950/70',
-    description: 'Cloud migration, IT systems & custom dev',
+    badgeColor: "text-sky-400",
+    borderColor: "border-sky-500/30 hover:border-sky-400/60",
+    bgColor: "bg-sky-950/40 hover:bg-sky-950/70",
+    description: "Cloud migration, IT systems & custom dev",
   },
   {
-    id: 'training',
-    title: 'Training Programs',
-    prompt: 'What training programs and certification prep courses (e.g. CISSP, staff awareness) are currently available?',
+    id: "training",
+    title: "What training programs are available?",
+    prompt: "What training programs are available?",
     icon: GraduationCap,
-    badgeColor: 'text-amber-400',
-    borderColor: 'border-amber-500/30 hover:border-amber-400/60',
-    bgColor: 'bg-amber-950/40 hover:bg-amber-950/70',
-    description: 'CISSP cert prep & cybersecurity awareness',
+    badgeColor: "text-amber-400",
+    borderColor: "border-amber-500/30 hover:border-amber-400/60",
+    bgColor: "bg-amber-950/40 hover:bg-amber-950/70",
+    description: "CISSP cert prep & cybersecurity awareness",
   },
   {
-    id: 'support',
-    title: 'Contact Support',
-    prompt: 'I need to contact Apexium support or speak directly with a service specialist.',
+    id: "expert",
+    title: "How can I speak to an expert?",
+    prompt: "How can I speak to an expert?",
+    icon: Pencil,
+    badgeColor: "text-violet-400",
+    borderColor: "border-violet-500/30 hover:border-violet-400/60",
+    bgColor: "bg-violet-950/40 hover:bg-violet-950/70",
+    description: "Speak with a specialist or account manager",
+  },
+  {
+    id: "support",
+    title: "Talk to a Human",
+    prompt:
+      "I need to talk to a human and speak directly with a support specialist.",
     icon: Headphones,
-    badgeColor: 'text-emerald-400',
-    borderColor: 'border-emerald-500/30 hover:border-emerald-400/60',
-    bgColor: 'bg-emerald-950/40 hover:bg-emerald-950/70',
-    description: 'Connect with a support specialist or SOC team',
+    badgeColor: "text-emerald-400",
+    borderColor: "border-emerald-500/30 hover:border-emerald-400/60",
+    bgColor: "bg-emerald-950/40 hover:bg-emerald-950/70",
+    description: "Connect with a support specialist or SOC team",
   },
 ];
 
@@ -80,7 +91,7 @@ export const QuickEnquiryOptions: React.FC<QuickEnquiryOptionsProps> = ({
       </div>
 
       {/* Horizontal Scrollable Grid Container */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 overflow-x-auto pb-1 scrollbar-none">
         {PREDEFINED_QUICK_OPTIONS.map((opt) => {
           const Icon = opt.icon;
           return (
