@@ -13,6 +13,7 @@ export interface ChatMessagePayload {
 export interface SendChatRequest {
   message: string;
   history?: ChatMessagePayload[];
+  conversationId?: string; // Tracking conversation ID
   token?: string; // Optional JWT token for authenticated requests
   timeoutMs?: number; // Configurable timeout in milliseconds (default: 15000ms)
   signal?: AbortSignal;
@@ -26,6 +27,7 @@ export interface ToolCallData {
 export interface SendChatResponse {
   success: boolean;
   reply: string;
+  conversationId?: string;
   toolCall?: ToolCallData | null;
   timestamp: string;
 }
@@ -58,7 +60,6 @@ async function fetchWithTimeout(
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
 
-  // Link external signal if provided
   if (options.signal) {
     options.signal.addEventListener('abort', () => controller.abort());
   }
@@ -94,6 +95,7 @@ export const chatApiService = {
   async sendChatMessage({
     message,
     history = [],
+    conversationId,
     token,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     signal,
@@ -105,6 +107,10 @@ export const chatApiService = {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
+
+    if (conversationId) {
+      headers['X-Conversation-ID'] = conversationId;
+    }
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
@@ -121,6 +127,7 @@ export const chatApiService = {
           body: JSON.stringify({
             message: message.trim(),
             history,
+            conversationId,
           }),
           signal,
         },
@@ -133,7 +140,7 @@ export const chatApiService = {
           const errorData = await response.json();
           errorMessage = errorData.error || errorData.message || errorMessage;
         } catch {
-          // Ignore JSON parse errors for non-JSON responses
+          // Ignore JSON parse errors
         }
         throw new ApiError(errorMessage, response.status);
       }

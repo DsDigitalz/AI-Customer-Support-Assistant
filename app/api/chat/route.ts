@@ -32,11 +32,11 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { message } = body;
+    const { message, conversationId } = body;
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
-        { success: false, error: 'Valid prompt string is required.', timestamp },
+        { success: false, error: 'Valid prompt string is required.', conversationId, timestamp },
         { status: 400 }
       );
     }
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     // Simulated error trigger for testing retry option
     if (lowerMessage.includes('trigger error') || lowerMessage.includes('simulate failure')) {
       return NextResponse.json(
-        { success: false, error: 'Simulated network timeout (503 Service Unavailable). Click Retry to resend.', timestamp },
+        { success: false, error: 'Simulated network timeout (503 Service Unavailable). Click Retry to resend.', conversationId, timestamp },
         { status: 503 }
       );
     }
@@ -63,6 +63,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: true,
         reply: matched.reply,
+        conversationId,
         toolCall: matched.toolCall || null,
         timestamp,
       });
@@ -71,6 +72,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       reply: `Thank you for contacting Apexium. I can assist you with our Cybersecurity Services, Technology Solutions, Training Programs, or connecting with Support. What specific information can I provide?`,
+      conversationId,
       toolCall: null,
       timestamp,
     });
