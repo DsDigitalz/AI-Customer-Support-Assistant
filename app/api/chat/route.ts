@@ -28,12 +28,17 @@ const MOCK_KNOWLEDGE_BASE = [
 ];
 
 export async function POST(req: Request) {
+  const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
   try {
     const body = await req.json();
     const { message } = body;
 
     if (!message || typeof message !== 'string') {
-      return NextResponse.json({ error: 'Valid prompt string is required.' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'Valid prompt string is required.', timestamp },
+        { status: 400 }
+      );
     }
 
     const lowerMessage = message.toLowerCase();
@@ -41,7 +46,7 @@ export async function POST(req: Request) {
     // Simulated error trigger for testing retry option
     if (lowerMessage.includes('trigger error') || lowerMessage.includes('simulate failure')) {
       return NextResponse.json(
-        { error: 'Simulated network timeout (503 Service Unavailable). Click Retry to resend.' },
+        { success: false, error: 'Simulated network timeout (503 Service Unavailable). Click Retry to resend.', timestamp },
         { status: 503 }
       );
     }
@@ -56,20 +61,28 @@ export async function POST(req: Request) {
 
     if (matched) {
       return NextResponse.json({
+        success: true,
         reply: matched.reply,
         toolCall: matched.toolCall || null,
+        timestamp,
       });
     }
 
     return NextResponse.json({
+      success: true,
       reply: `Thank you for contacting Apexium. I can assist you with our Cybersecurity Services, Technology Solutions, Training Programs, or connecting with Support. What specific information can I provide?`,
       toolCall: null,
+      timestamp,
     });
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Internal Server Error';
     return NextResponse.json(
-      { error: errorMessage },
+      { success: false, error: errorMessage, timestamp },
       { status: 500 }
     );
   }
+}
+
+export async function HEAD() {
+  return new Response(null, { status: 200 });
 }

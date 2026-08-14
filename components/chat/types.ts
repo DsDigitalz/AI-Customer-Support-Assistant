@@ -12,7 +12,7 @@ export interface ChatMessage {
   toolCall?: {
     name: string;
     label: string;
-  };
+  } | null;
 }
 
 export interface ChatState {
