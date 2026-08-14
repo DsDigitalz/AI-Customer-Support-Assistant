@@ -1,14 +1,27 @@
 import { NextResponse } from 'next/server';
+import { sanitizeInput } from '@/lib/security';
 
 export async function POST(req: Request) {
   const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Optional JWT token parsing for authenticated users
+  const authHeader = req.headers.get('Authorization');
+  const jwtToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
 
   try {
     const body = await req.json();
     const { fullName, email, phone, company, serviceOfInterest, message, conversationId } = body;
 
+    // Defense-in-depth sanitization
+    const cleanFullName = sanitizeInput(fullName || '');
+    const cleanEmail = sanitizeInput(email || '');
+    const cleanPhone = sanitizeInput(phone || '');
+    const cleanCompany = sanitizeInput(company || '');
+    const cleanService = sanitizeInput(serviceOfInterest || '');
+    const cleanMessage = sanitizeInput(message || '');
+
     // Server-side field validations
-    if (!fullName || typeof fullName !== 'string' || fullName.trim().length < 2) {
+    if (!cleanFullName || cleanFullName.trim().length < 2) {
       return NextResponse.json(
         { success: false, error: 'Full name must be at least 2 characters long.' },
         { status: 400 }
@@ -16,36 +29,36 @@ export async function POST(req: Request) {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
       return NextResponse.json(
         { success: false, error: 'A valid email address is required.' },
         { status: 400 }
       );
     }
 
-    if (!phone || typeof phone !== 'string' || phone.trim().length < 7) {
+    if (!cleanPhone || cleanPhone.trim().length < 7) {
       return NextResponse.json(
         { success: false, error: 'A valid contact phone number is required.' },
         { status: 400 }
       );
     }
 
-    if (!company || typeof company !== 'string' || !company.trim()) {
+    if (!cleanCompany || !cleanCompany.trim()) {
       return NextResponse.json(
         { success: false, error: 'Company/Organization name is required.' },
         { status: 400 }
       );
     }
 
-    // Generate unique Lead ID (e.g., LEAD-84920)
     const leadId = `LEAD-${Math.floor(10000 + Math.random() * 89999)}`;
 
-    console.log(`[LEAD CAPTURED] ID: ${leadId} | Name: ${fullName} | Company: ${company} | Service: ${serviceOfInterest} | Message: ${message} | ConvID: ${conversationId}`);
+    console.log(`[LEAD CAPTURED] ID: ${leadId} | Name: ${cleanFullName} | Company: ${cleanCompany} | Service: ${cleanService} | Message: ${cleanMessage} | ConvID: ${conversationId} | Auth: ${Boolean(jwtToken)}`);
 
     return NextResponse.json({
       success: true,
       leadId,
-      message: `Thank you ${fullName.split(' ')[0]}! Your consultation request has been received. An Apexium specialist will reach out shortly via ${email}.`,
+      authenticatedUser: Boolean(jwtToken),
+      message: `Thank you ${cleanFullName.split(' ')[0]}! Your consultation request has been received. An Apexium specialist will reach out shortly via ${cleanEmail}.`,
       timestamp,
     });
   } catch (err: unknown) {

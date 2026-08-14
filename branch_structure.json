@@ -1,0 +1,21 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "feat/ai-chat-and-lead-capture",
+    "feature/ai-customer-support",
+    "main",
+    "origin"
+  ],
+  "parent": {
+    "feat/ai-chat-and-lead-capture": "main",
+    "feature/ai-customer-support": "main",
+    "main": null,
+    "origin": "main"
+  },
+  "order": [
+    "main",
+    "feat/ai-chat-and-lead-capture",
+    "feature/ai-customer-support",
+    "origin"
+  ]
+}
