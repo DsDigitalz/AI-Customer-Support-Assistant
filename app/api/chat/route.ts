@@ -2,8 +2,15 @@ import { NextResponse } from 'next/server';
 
 const MOCK_KNOWLEDGE_BASE = [
   {
+    keywords: ['pricing', 'quote', 'cost', 'demo', 'consultation', 'proposal', 'sales', 'hire', 'book'],
+    reply: "I would be happy to connect you with an Apexium Specialist for a tailored pricing proposal and consultation. Please complete the quick enquiry form below so our sales engineering team can prepare your custom quote.",
+    triggerLeadForm: true,
+    toolCall: { name: 'crm_lookup_account', label: 'Preparing Lead Capture & Sales Engineering Referral…' },
+  },
+  {
     keywords: ['contact support', 'support', 'specialist', 'contact', 'talk to human'],
     reply: "I can connect you with an Apexium Specialist right away! For urgent technical support or active security incidents, our 24/7 SOC team is available. Would you like me to flag your account for an immediate call back from an account manager or technical specialist?",
+    triggerLeadForm: true,
     toolCall: { name: 'crm_lookup_account', label: 'Routing to Apexium Support & CRM Account Manager…' },
   },
   {
@@ -65,6 +72,7 @@ export async function POST(req: Request) {
         reply: matched.reply,
         conversationId,
         toolCall: matched.toolCall || null,
+        triggerLeadForm: matched.triggerLeadForm || false,
         timestamp,
       });
     }
@@ -74,6 +82,7 @@ export async function POST(req: Request) {
       reply: `Thank you for contacting Apexium. I can assist you with our Cybersecurity Services, Technology Solutions, Training Programs, or connecting with Support. What specific information can I provide?`,
       conversationId,
       toolCall: null,
+      triggerLeadForm: false,
       timestamp,
     });
   } catch (err: unknown) {

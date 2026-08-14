@@ -16,7 +16,6 @@ const INITIAL_WELCOME_MESSAGE: ChatMessage = {
   status: 'sent',
 };
 
-// Helper function to generate a unique conversation ID
 function generateConversationId(): string {
   const timePart = Date.now().toString(36);
   const randomPart = Math.random().toString(36).substring(2, 7);
@@ -29,11 +28,15 @@ interface ChatContextType {
   isLoading: boolean;
   globalError: string | null;
   isPersisted: boolean;
+  showLeadForm: boolean;
   sendMessage: (text: string) => Promise<void>;
   retryMessage: (messageId?: string) => Promise<void>;
   startNewConversation: () => void;
   togglePersistence: () => void;
   clearHistory: () => void;
+  triggerLeadForm: () => void;
+  closeLeadForm: () => void;
+  handleLeadSubmitted: (leadId: string, confirmationMessage: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -44,11 +47,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [isPersisted, setIsPersisted] = useState<boolean>(false);
-  
+  const [showLeadForm, setShowLeadForm] = useState<boolean>(false);
+
   const activeAbortControllerRef = useRef<AbortController | null>(null);
   const isInitializedRef = useRef<boolean>(false);
 
-  // Initialize state from LocalStorage if persistence is enabled
   useEffect(() => {
     if (typeof window === 'undefined' || isInitializedRef.current) return;
     isInitializedRef.current = true;
@@ -61,9 +64,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const storedConvId = localStorage.getItem(STORAGE_KEY_CONV_ID);
       const storedMsgs = localStorage.getItem(STORAGE_KEY_MESSAGES);
 
-      if (storedConvId) {
-        setConversationId(storedConvId);
-      }
+      if (storedConvId) setConversationId(storedConvId);
       if (storedMsgs) {
         try {
           const parsed = JSON.parse(storedMsgs);
@@ -77,7 +78,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Save to LocalStorage whenever messages or conversationId changes (if persistence is on)
   useEffect(() => {
     if (typeof window === 'undefined' || !isInitializedRef.current) return;
 
@@ -92,7 +92,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [messages, conversationId, isPersisted]);
 
-  // Clean up in-flight requests on unmount
   useEffect(() => {
     return () => {
       if (activeAbortControllerRef.current) {
@@ -107,7 +106,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const controller = new AbortController();
     activeAbortControllerRef.current = controller;
-
     const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     try {
@@ -132,26 +130,27 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ]);
       }
 
-      const aiMessage: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        role: 'assistant',
-        content: response.reply || "Request processed.",
-        timestamp: response.timestamp || timeString,
-        status: 'sent',
-      };
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-${Date.now()}`,
+          role: 'assistant',
+          content: response.reply || "Request processed.",
+          timestamp: response.timestamp || timeString,
+          status: 'sent',
+        },
+      ]);
 
-      setMessages((prev) => [...prev, aiMessage]);
+      // Automatically trigger Lead Form if high intent detected by AI
+      if (response.triggerLeadForm) {
+        setShowLeadForm(true);
+      }
     } catch (err: unknown) {
       let displayError = "Failed to establish connection with AI server.";
-      if (err instanceof ApiError) {
-        displayError = err.message;
-      } else if (err instanceof Error) {
-        displayError = err.message;
-      }
+      if (err instanceof ApiError) displayError = err.message;
+      else if (err instanceof Error) displayError = err.message;
 
-      console.error("Chat API Error:", err);
       setGlobalError(displayError);
-
       setMessages((prev) => {
         const copy = [...prev];
         const lastMsg = copy[copy.length - 1];
@@ -175,7 +174,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       status: 'sending',
     };
-
     const updated = [...messages, userMsg];
     setMessages(updated);
     await sendApiRequest(text, updated);
@@ -184,17 +182,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const retryMessage = async (messageId?: string) => {
     setGlobalError(null);
     let targetText = '';
-
     if (messageId) {
       const msg = messages.find((m) => m.id === messageId);
       if (msg && msg.role === 'user') targetText = msg.content;
     }
-
     if (!targetText) {
       const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
       if (lastUserMsg) targetText = lastUserMsg.content;
     }
-
     if (targetText) {
       await sendApiRequest(targetText, messages);
     }
@@ -215,6 +210,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     ];
     setMessages(resetMsgs);
     setGlobalError(null);
+    setShowLeadForm(false);
 
     if (isPersisted) {
       localStorage.setItem(STORAGE_KEY_CONV_ID, newId);
@@ -222,9 +218,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const togglePersistence = () => {
-    setIsPersisted((prev) => !prev);
-  };
+  const togglePersistence = () => setIsPersisted((prev) => !prev);
 
   const clearHistory = () => {
     if (typeof window !== 'undefined') {
@@ -232,6 +226,24 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.removeItem(STORAGE_KEY_MESSAGES);
     }
     startNewConversation();
+  };
+
+  const triggerLeadForm = () => setShowLeadForm(true);
+  const closeLeadForm = () => setShowLeadForm(false);
+
+  const handleLeadSubmitted = (leadId: string, confirmationMessage: string) => {
+    setShowLeadForm(false);
+    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `lead-confirmed-${Date.now()}`,
+        role: 'assistant',
+        content: `✅ Lead Consultation Request [${leadId}] successfully submitted!\n${confirmationMessage}`,
+        timestamp: timeString,
+        status: 'sent',
+      },
+    ]);
   };
 
   return (
@@ -242,11 +254,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoading,
         globalError,
         isPersisted,
+        showLeadForm,
         sendMessage,
         retryMessage,
         startNewConversation,
         togglePersistence,
         clearHistory,
+        triggerLeadForm,
+        closeLeadForm,
+        handleLeadSubmitted,
       }}
     >
       {children}
@@ -256,8 +272,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useChat = () => {
   const context = useContext(ChatContext);
-  if (!context) {
-    throw new Error('useChat must be used within a ChatProvider');
-  }
+  if (!context) throw new Error('useChat must be used within a ChatProvider');
   return context;
 };

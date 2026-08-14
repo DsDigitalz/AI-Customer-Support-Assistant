@@ -13,9 +13,9 @@ export interface ChatMessagePayload {
 export interface SendChatRequest {
   message: string;
   history?: ChatMessagePayload[];
-  conversationId?: string; // Tracking conversation ID
-  token?: string; // Optional JWT token for authenticated requests
-  timeoutMs?: number; // Configurable timeout in milliseconds (default: 15000ms)
+  conversationId?: string;
+  token?: string;
+  timeoutMs?: number;
   signal?: AbortSignal;
 }
 
@@ -29,6 +29,24 @@ export interface SendChatResponse {
   reply: string;
   conversationId?: string;
   toolCall?: ToolCallData | null;
+  triggerLeadForm?: boolean;
+  timestamp: string;
+}
+
+export interface LeadFormData {
+  fullName: string;
+  email: string;
+  phone: string;
+  company: string;
+  serviceOfInterest: string;
+  message: string;
+  conversationId?: string;
+}
+
+export interface SubmitLeadResponse {
+  success: boolean;
+  leadId: string;
+  message: string;
   timestamp: string;
 }
 
@@ -49,9 +67,6 @@ export class ApiError extends Error {
 const DEFAULT_TIMEOUT_MS = 15000;
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
-/**
- * Fetch wrapper with configurable timeout and abort controller support
- */
 async function fetchWithTimeout(
   url: string,
   options: RequestInit = {},
@@ -85,13 +100,7 @@ async function fetchWithTimeout(
   }
 }
 
-/**
- * Chat API Service Abstraction
- */
 export const chatApiService = {
-  /**
-   * Post a user chat prompt to the AI backend service
-   */
   async sendChatMessage({
     message,
     history = [],
@@ -148,22 +157,50 @@ export const chatApiService = {
       const data: SendChatResponse = await response.json();
       return data;
     } catch (err: unknown) {
-      if (err instanceof ApiError) {
-        throw err;
-      }
+      if (err instanceof ApiError) throw err;
       if (err instanceof Error) {
-        throw new ApiError(
-          err.message || 'Unable to connect to Apexium AI Assistant.',
-          500
-        );
+        throw new ApiError(err.message || 'Unable to connect to Apexium AI Assistant.', 500);
       }
       throw new ApiError('An unexpected network error occurred.', 500);
     }
   },
 
   /**
-   * Utility function to check system health
+   * Submit lead capture form data to backend
    */
+  async submitLeadForm(leadData: LeadFormData): Promise<SubmitLeadResponse> {
+    const endpoint = `${API_BASE_URL}/api/lead`;
+
+    try {
+      const response = await fetchWithTimeout(
+        endpoint,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(leadData),
+        },
+        10000
+      );
+
+      if (!response.ok) {
+        let errorMessage = `Lead submission failed (${response.status})`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // Ignore JSON parse errors
+        }
+        throw new ApiError(errorMessage, response.status);
+      }
+
+      return await response.json();
+    } catch (err: unknown) {
+      if (err instanceof ApiError) throw err;
+      if (err instanceof Error) throw new ApiError(err.message, 500);
+      throw new ApiError('Failed to submit lead information.', 500);
+    }
+  },
+
   async checkServiceHealth(): Promise<{ status: string }> {
     try {
       const response = await fetchWithTimeout('/api/chat', { method: 'HEAD' }, 5000);

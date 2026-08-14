@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { Shield, Cpu, GraduationCap, MessageSquare, PlusCircle, Sparkles, Save, Trash2, Hash } from 'lucide-react';
+import { Shield, Cpu, GraduationCap, MessageSquare, PlusCircle, Sparkles, Save, Trash2, Hash, FileText } from 'lucide-react';
 import { useChat } from '@/context/ChatContext';
 import { MessageBubble } from './MessageBubble';
 import { TypingIndicator } from './TypingIndicator';
 import { ErrorMessage } from './ErrorMessage';
 import { ChatInput } from './ChatInput';
+import { LeadCaptureForm } from './LeadCaptureForm';
 
 export const ChatWindow: React.FC = () => {
   const {
@@ -15,27 +16,31 @@ export const ChatWindow: React.FC = () => {
     isLoading,
     globalError,
     isPersisted,
+    showLeadForm,
     sendMessage,
     retryMessage,
     startNewConversation,
     togglePersistence,
     clearHistory,
+    triggerLeadForm,
+    closeLeadForm,
+    handleLeadSubmitted,
   } = useChat();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom whenever messages, loading, or error states update
+  // Auto-scroll to bottom whenever messages, lead form, loading, or error states change
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading, globalError]);
+  }, [messages, isLoading, globalError, showLeadForm]);
 
   return (
     <div className="w-full max-w-4xl mx-auto flex flex-col h-[90vh] max-h-[850px] bg-slate-950/90 border border-slate-800 rounded-2xl shadow-2xl shadow-teal-950/20 overflow-hidden backdrop-blur-xl transition-all">
-      {/* Top Main Header */}
+      {/* Top Header */}
       <header className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 border-b border-slate-800/80 bg-slate-900/60 shrink-0">
         {/* Brand & Assistant Info */}
         <div className="flex items-center gap-3">
@@ -66,7 +71,7 @@ export const ChatWindow: React.FC = () => {
         </div>
 
         {/* Action Controls Toolbar */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {/* Service Line Indicators */}
           <div className="hidden lg:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
             <span className="text-[11px] font-medium text-cyan-300 px-2 py-1 rounded-lg bg-cyan-950/50 border border-cyan-500/20 flex items-center gap-1">
@@ -80,11 +85,22 @@ export const ChatWindow: React.FC = () => {
             </span>
           </div>
 
+          {/* Manual Lead Form Request Button */}
+          <button
+            type="button"
+            onClick={triggerLeadForm}
+            title="Request a Custom Service Quote / Consultation Form"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-teal-950/50 hover:bg-teal-900/60 border border-teal-500/30 text-teal-300 text-xs font-semibold transition-all cursor-pointer"
+          >
+            <FileText className="w-3.5 h-3.5 text-teal-400" />
+            <span className="hidden sm:inline">Request Quote</span>
+          </button>
+
           {/* LocalStorage Persistence Toggle */}
           <button
             type="button"
             onClick={togglePersistence}
-            title={isPersisted ? "LocalStorage Auto-Save ON (Click to disable)" : "LocalStorage Auto-Save OFF (Click to enable)"}
+            title={isPersisted ? "LocalStorage Auto-Save ON" : "LocalStorage Auto-Save OFF"}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-mono transition-all cursor-pointer ${
               isPersisted
                 ? 'bg-teal-950/60 border-teal-500/40 text-teal-300 shadow-sm'
@@ -95,7 +111,7 @@ export const ChatWindow: React.FC = () => {
             <span className="hidden sm:inline">{isPersisted ? 'Save ON' : 'Save OFF'}</span>
           </button>
 
-          {/* Clear History Button (if persisted) */}
+          {/* Clear History Button */}
           {isPersisted && (
             <button
               type="button"
@@ -111,7 +127,7 @@ export const ChatWindow: React.FC = () => {
           <button
             type="button"
             onClick={startNewConversation}
-            title="Start New Conversation (Generates new ID & clears session)"
+            title="Start New Conversation"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-teal-500/20 to-cyan-500/20 hover:from-teal-500/30 hover:to-cyan-500/30 border border-teal-500/40 text-teal-200 text-xs font-semibold transition-all cursor-pointer active:scale-95 shadow-sm"
           >
             <PlusCircle className="w-4 h-4 text-teal-400" />
@@ -127,6 +143,15 @@ export const ChatWindow: React.FC = () => {
         ))}
 
         {isLoading && <TypingIndicator />}
+
+        {/* Conditional Lead Capture Form inside Chat Stream */}
+        {showLeadForm && (
+          <LeadCaptureForm
+            conversationId={conversationId}
+            onSuccess={handleLeadSubmitted}
+            onCancel={closeLeadForm}
+          />
+        )}
 
         {globalError && (
           <ErrorMessage message={globalError} onRetry={() => retryMessage()} />
