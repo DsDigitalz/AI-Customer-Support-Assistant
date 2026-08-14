@@ -133,64 +133,64 @@ export const QuickEnquiryOptions: React.FC<QuickEnquiryOptionsProps> = ({
   }
 
   // ── Full grid layout (rendered inside the messages feed area) ────────────
-  return (
-    <div className="w-full space-y-2 animate-fade-in">
-      <div className="flex items-center justify-between px-1">
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">
-          Quick Enquiries
-        </span>
-        <span className="text-[11px] text-slate-500 font-mono">
-          Click to send · Edit icon to prefill
-        </span>
-      </div>
+  
+    // <div className="w-full space-y-2 animate-fade-in">
+    //   <div className="flex items-center justify-between px-1">
+    //     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono">
+    //       Quick Enquirie
+    //     </span>
+    //     <span className="text-[11px] text-slate-500 font-mono">
+    //       Click to send · Edit icon to prefill
+    //     </span>
+    //   </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-        {PREDEFINED_QUICK_OPTIONS.map((opt) => {
-          const Icon = opt.icon;
-          return (
-            <div
-              key={opt.id}
-              className={`group relative flex items-center justify-between p-3 rounded-xl border transition-all duration-200 backdrop-blur-md shadow-sm ${opt.bgColor} ${opt.borderColor}`}
-            >
-              {/* Click main card to send message directly */}
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => onSelectOption(opt.prompt)}
-                className="flex items-center gap-2.5 flex-1 text-left cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-w-0"
-              >
-                <div className="w-7 h-7 rounded-lg bg-slate-900/80 flex items-center justify-center shrink-0 border border-slate-800 shadow-inner">
-                  <Icon className={`w-4 h-4 ${opt.badgeColor}`} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-semibold text-slate-200 group-hover:text-slate-100 truncate">
-                    {opt.title}
-                  </div>
-                  <div className="text-[11px] text-slate-400 truncate">
-                    {opt.description}
-                  </div>
-                </div>
-              </button>
+    //   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+    //     {PREDEFINED_QUICK_OPTIONS.map((opt) => {
+    //       const Icon = opt.icon;
+    //       return (
+    //         <div
+    //           key={opt.id}
+    //           className={`group relative flex items-center justify-between p-3 rounded-xl border transition-all duration-200 backdrop-blur-md shadow-sm ${opt.bgColor} ${opt.borderColor}`}
+    //         >
+    //           {/* Click main card to send message directly */}
+    //           <button
+    //             type="button"
+    //             disabled={isLoading}
+    //             onClick={() => onSelectOption(opt.prompt)}
+    //             className="flex items-center gap-2.5 flex-1 text-left cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-w-0"
+    //           >
+    //             <div className="w-7 h-7 rounded-lg bg-slate-900/80 flex items-center justify-center shrink-0 border border-slate-800 shadow-inner">
+    //               <Icon className={`w-4 h-4 ${opt.badgeColor}`} />
+    //             </div>
+    //             <div className="min-w-0 flex-1">
+    //               <div className="text-xs font-semibold text-slate-200 group-hover:text-slate-100 truncate">
+    //                 {opt.title}
+    //               </div>
+    //               <div className="text-[11px] text-slate-400 truncate">
+    //                 {opt.description}
+    //               </div>
+    //             </div>
+    //           </button>
 
-              {/* Prefill button to edit before sending */}
-              {onPrefillOption && (
-                <button
-                  type="button"
-                  disabled={isLoading}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onPrefillOption(opt.prompt);
-                  }}
-                  title={`Edit "${opt.title}" prompt before sending`}
-                  className="p-1.5 ml-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-colors opacity-70 group-hover:opacity-100 shrink-0 cursor-pointer disabled:opacity-30"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+    //           {/* Prefill button to edit before sending */}
+    //           {onPrefillOption && (
+    //             <button
+    //               type="button"
+    //               disabled={isLoading}
+    //               onClick={(e) => {
+    //                 e.stopPropagation();
+    //                 onPrefillOption(opt.prompt);
+    //               }}
+    //               title={`Edit "${opt.title}" prompt before sending`}
+    //               className="p-1.5 ml-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-colors opacity-70 group-hover:opacity-100 shrink-0 cursor-pointer disabled:opacity-30"
+    //             >
+    //               <Pencil className="w-3.5 h-3.5" />
+    //             </button>
+    //           )}
+    //         </div>
+    //       );
+    //     })}
+    //   </div>
+    // </div>
+  
 };
