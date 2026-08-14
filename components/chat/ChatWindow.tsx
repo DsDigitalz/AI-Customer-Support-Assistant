@@ -1,13 +1,24 @@
-'use client';
+"use client";
 
-import React, { useRef, useEffect } from 'react';
-import { Shield, Cpu, GraduationCap, MessageSquare, PlusCircle, Sparkles, Save, Trash2, Hash, FileText } from 'lucide-react';
-import { useChat } from '@/context/ChatContext';
-import { MessageBubble } from './MessageBubble';
-import { TypingIndicator } from './TypingIndicator';
-import { ErrorMessage } from './ErrorMessage';
-import { ChatInput } from './ChatInput';
-import { LeadCaptureForm } from './LeadCaptureForm';
+import React, { useRef, useEffect } from "react";
+import {
+  Shield,
+  Cpu,
+  GraduationCap,
+  MessageSquare,
+  PlusCircle,
+  Sparkles,
+  Save,
+  Trash2,
+  Hash,
+  FileText,
+} from "lucide-react";
+import { useChat } from "@/context/ChatContext";
+import { MessageBubble } from "./MessageBubble";
+import { TypingIndicator } from "./TypingIndicator";
+import { ErrorMessage } from "./ErrorMessage";
+import { ChatInput } from "./ChatInput";
+import { LeadCaptureForm } from "./LeadCaptureForm";
 
 export const ChatWindow: React.FC = () => {
   const {
@@ -31,7 +42,10 @@ export const ChatWindow: React.FC = () => {
 
   // Auto-scroll to bottom whenever messages, lead form, loading, or error states change
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
   };
 
   useEffect(() => {
@@ -53,7 +67,9 @@ export const ChatWindow: React.FC = () => {
 
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold text-slate-100 tracking-tight">Apexium AI Support</h1>
+              <h1 className="text-base font-bold text-slate-100 tracking-tight">
+                Apexium AI Support
+              </h1>
               {/* Unique Conversation ID Badge */}
               <span
                 title={`Tracking ID: ${conversationId}`}
@@ -89,26 +105,34 @@ export const ChatWindow: React.FC = () => {
           <button
             type="button"
             onClick={triggerLeadForm}
-            title="Request a Custom Service Quote / Consultation Form"
+            title="Talk to a human / request support"
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-teal-950/50 hover:bg-teal-900/60 border border-teal-500/30 text-teal-300 text-xs font-semibold transition-all cursor-pointer"
           >
             <FileText className="w-3.5 h-3.5 text-teal-400" />
-            <span className="hidden sm:inline">Request Quote</span>
+            <span className="hidden sm:inline">Talk to a Human</span>
           </button>
 
           {/* LocalStorage Persistence Toggle */}
           <button
             type="button"
             onClick={togglePersistence}
-            title={isPersisted ? "LocalStorage Auto-Save ON" : "LocalStorage Auto-Save OFF"}
+            title={
+              isPersisted
+                ? "LocalStorage Auto-Save ON"
+                : "LocalStorage Auto-Save OFF"
+            }
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-mono transition-all cursor-pointer ${
               isPersisted
-                ? 'bg-teal-950/60 border-teal-500/40 text-teal-300 shadow-sm'
-                : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
+                ? "bg-teal-950/60 border-teal-500/40 text-teal-300 shadow-sm"
+                : "bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200"
             }`}
           >
-            <Save className={`w-3.5 h-3.5 ${isPersisted ? 'text-teal-400' : 'text-slate-500'}`} />
-            <span className="hidden sm:inline">{isPersisted ? 'Save ON' : 'Save OFF'}</span>
+            <Save
+              className={`w-3.5 h-3.5 ${isPersisted ? "text-teal-400" : "text-slate-500"}`}
+            />
+            <span className="hidden sm:inline">
+              {isPersisted ? "Save ON" : "Save OFF"}
+            </span>
           </button>
 
           {/* Clear History Button */}
