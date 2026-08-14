@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Shield, Cpu, GraduationCap, MessageSquare, RefreshCw, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Shield, Cpu, GraduationCap, MessageSquare, RefreshCw, Sparkles } from 'lucide-react';
 import { ChatMessage } from './types';
 import { MessageBubble } from './MessageBubble';
 import { TypingIndicator } from './TypingIndicator';
@@ -80,9 +80,10 @@ export const ChatWindow: React.FC = () => {
       };
 
       setMessages((prev) => [...prev, aiMessage]);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to establish connection with AI support server.';
       console.error("Chat API Error:", err);
-      setGlobalError(err.message || "Failed to establish connection with AI support server.");
+      setGlobalError(errorMessage);
       
       // Update last user message or add error state
       setMessages((prev) => {
@@ -90,7 +91,7 @@ export const ChatWindow: React.FC = () => {
         const lastMsg = copy[copy.length - 1];
         if (lastMsg && lastMsg.role === 'user') {
           lastMsg.status = 'error';
-          lastMsg.errorMessage = err.message || 'Failed to send';
+          lastMsg.errorMessage = errorMessage;
         }
         return copy;
       });

@@ -2,27 +2,28 @@ import { NextResponse } from 'next/server';
 
 const MOCK_KNOWLEDGE_BASE = [
   {
+    keywords: ['contact support', 'support', 'specialist', 'contact', 'talk to human'],
+    reply: "I can connect you with an Apexium Specialist right away! For urgent technical support or active security incidents, our 24/7 SOC team is available. Would you like me to flag your account for an immediate call back from an account manager or technical specialist?",
+    toolCall: { name: 'crm_lookup_account', label: 'Routing to Apexium Support & CRM Account Manager…' },
+  },
+  {
+    keywords: ['cybersecurity services', 'cybersecurity', 'pentest', 'audit', 'soc', 'compliance'],
+    reply: "Apexium offers comprehensive Cybersecurity Services including penetration testing, vulnerability assessments, 24/7 Managed SOC threat monitoring, and ISO 27001 / SOC 2 compliance readiness. Engagements are tailored based on your company size and infrastructure.",
+    toolCall: { name: 'crm_lookup_account', label: 'Checking CRM for active Cybersecurity service plans…' },
+  },
+  {
+    keywords: ['technology services', 'technology', 'cloud', 'software', 'infrastructure', 'migration'],
+    reply: "Our Technology Services division specializes in end-to-end cloud infrastructure migration (AWS, GCP, Azure), custom enterprise software development, IT consulting, and systems integration.",
+  },
+  {
+    keywords: ['training programs', 'training', 'cissp', 'certification', 'courses', 'awareness'],
+    reply: "Apexium Training Programs cover employee cybersecurity awareness training, technical certification prep (e.g. CISSP, CompTIA, Cloud certs), and tailored workshops for engineering and leadership teams.",
+    toolCall: { name: 'lms_check_course', label: 'Checking LMS course availability for upcoming sessions…' },
+  },
+  {
     keywords: ['breach', 'incident', 'hack', 'critical', 'attack', 'compromise'],
-    reply: "🚨 ACTIVE INCIDENT DETECTED: Opening an immediate high-priority ticket with the Apexium SOC (Security Operations Center) on-call team. Please avoid taking affected systems offline abruptly; keep logs intact. Our 24/7 Incident Hotline is also available directly. A security engineer is reviewing this now.",
+    reply: "🚨 ACTIVE INCIDENT DETECTED: Opening an immediate high-priority ticket with the Apexium SOC (Security Operations Center) on-call team. Please avoid taking affected systems offline abruptly; keep logs intact. A security engineer is reviewing this now.",
     toolCall: { name: 'ticketing_create_incident', label: 'Opening SOC incident ticket (INC-84920)…' },
-  },
-  {
-    keywords: ['northwind', 'account', 'tier', 'manager'],
-    reply: "I've checked the Apexium CRM records for Northwind Logistics. Your account is on the Enterprise Tier with active services including Managed SOC (24/7 Monitoring) and Cloud Migration. Your dedicated Account Manager is Priya Nair.",
-    toolCall: { name: 'crm_lookup_account', label: 'Checking CRM account details for Northwind Logistics…' },
-  },
-  {
-    keywords: ['cissp', 'certification', 'course', 'training', 'seats'],
-    reply: "The next session for CISSP Certification Prep starts on September 8th, 2026. There are currently 6 seats remaining in this cohort. Would you like me to connect you with our training coordinator to hold a seat?",
-    toolCall: { name: 'lms_check_course', label: 'Checking LMS course availability for CISSP Prep…' },
-  },
-  {
-    keywords: ['cybersecurity', 'pentest', 'audit', 'soc', 'compliance'],
-    reply: "Apexium offers comprehensive Cybersecurity Services including penetration testing, vulnerability assessments, 24/7 Managed SOC threat monitoring, and ISO 27001 / SOC 2 compliance readiness. Engagements are tailored based on infrastructure scale.",
-  },
-  {
-    keywords: ['technology', 'cloud', 'software', 'infrastructure', 'migration'],
-    reply: "Our Technology Services team specializes in cloud infrastructure migration, custom software engineering, and systems integration to help streamline your tech stack securely.",
   },
 ];
 
@@ -60,14 +61,14 @@ export async function POST(req: Request) {
       });
     }
 
-    // Default intelligent response
     return NextResponse.json({
-      reply: `Thank you for contacting Apexium. I can assist you with our Cybersecurity Services (Pen testing, SOC 24/7), Technology Solutions (Cloud migration, Custom dev), or Training (Staff awareness, CISSP prep). Could you specify which area you'd like more details on?`,
+      reply: `Thank you for contacting Apexium. I can assist you with our Cybersecurity Services, Technology Solutions, Training Programs, or connecting with Support. What specific information can I provide?`,
       toolCall: null,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Internal Server Error';
     return NextResponse.json(
-      { error: err.message || 'Internal Server Error' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
