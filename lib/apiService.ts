@@ -3,7 +3,10 @@
  * 
  * Handles frontend <-> backend communication following the pipeline:
  * User -> Chat Interface -> Backend API Proxy -> AI System -> Response -> User
+ * Includes XSS Sanitization & Automatic JWT Authorization Header Injection.
  */
+
+import { sanitizeInput, sanitizeObject, getAuthToken } from './security';
 
 export interface ChatMessagePayload {
   role: 'user' | 'assistant' | 'system';
@@ -101,6 +104,9 @@ async function fetchWithTimeout(
 }
 
 export const chatApiService = {
+  /**
+   * Post user chat prompt with XSS sanitization & JWT authentication
+   */
   async sendChatMessage({
     message,
     history = [],
@@ -109,9 +115,21 @@ export const chatApiService = {
     timeoutMs = DEFAULT_TIMEOUT_MS,
     signal,
   }: SendChatRequest): Promise<SendChatResponse> {
-    if (!message || !message.trim()) {
-      throw new ApiError('Message prompt cannot be empty.', 400);
+    // 1. Sanitize user prompt to prevent XSS
+    const cleanMessage = sanitizeInput(message);
+
+    if (!cleanMessage) {
+      throw new ApiError('Message prompt cannot be empty or invalid.', 400);
     }
+
+    // 2. Sanitize conversation history
+    const cleanHistory = history.map((item) => ({
+      role: item.role,
+      content: sanitizeInput(item.content),
+    }));
+
+    // 3. Attach JWT Token (Explicitly passed or retrieved from cookie/localStorage)
+    const authToken = token || getAuthToken();
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -121,8 +139,8 @@ export const chatApiService = {
       headers['X-Conversation-ID'] = conversationId;
     }
 
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
     }
 
     const endpoint = `${API_BASE_URL}/api/chat`;
@@ -134,8 +152,8 @@ export const chatApiService = {
           method: 'POST',
           headers,
           body: JSON.stringify({
-            message: message.trim(),
-            history,
+            message: cleanMessage,
+            history: cleanHistory,
             conversationId,
           }),
           signal,
@@ -166,9 +184,23 @@ export const chatApiService = {
   },
 
   /**
-   * Submit lead capture form data to backend
+   * Submit lead capture form data with XSS sanitization & JWT headers
    */
   async submitLeadForm(leadData: LeadFormData): Promise<SubmitLeadResponse> {
+    // 1. Recursively sanitize form input object
+    const cleanLeadData = sanitizeObject(leadData);
+
+    // 2. Attach JWT auth token if user is logged in
+    const authToken = getAuthToken();
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
     const endpoint = `${API_BASE_URL}/api/lead`;
 
     try {
@@ -176,8 +208,8 @@ export const chatApiService = {
         endpoint,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(leadData),
+          headers,
+          body: JSON.stringify(cleanLeadData),
         },
         10000
       );

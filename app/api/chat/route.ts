@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sanitizeInput } from '@/lib/security';
 
 const MOCK_KNOWLEDGE_BASE = [
   {
@@ -37,6 +38,10 @@ const MOCK_KNOWLEDGE_BASE = [
 export async function POST(req: Request) {
   const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+  // Optional: Extract JWT token from Authorization header if present
+  const authHeader = req.headers.get('Authorization');
+  const jwtToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+
   try {
     const body = await req.json();
     const { message, conversationId } = body;
@@ -48,7 +53,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const lowerMessage = message.toLowerCase();
+    // Defense-in-depth server-side sanitization
+    const cleanMessage = sanitizeInput(message);
+    const lowerMessage = cleanMessage.toLowerCase();
 
     // Simulated error trigger for testing retry option
     if (lowerMessage.includes('trigger error') || lowerMessage.includes('simulate failure')) {
@@ -71,6 +78,7 @@ export async function POST(req: Request) {
         success: true,
         reply: matched.reply,
         conversationId,
+        authenticatedUser: Boolean(jwtToken),
         toolCall: matched.toolCall || null,
         triggerLeadForm: matched.triggerLeadForm || false,
         timestamp,
@@ -81,6 +89,7 @@ export async function POST(req: Request) {
       success: true,
       reply: `Thank you for contacting Apexium. I can assist you with our Cybersecurity Services, Technology Solutions, Training Programs, or connecting with Support. What specific information can I provide?`,
       conversationId,
+      authenticatedUser: Boolean(jwtToken),
       toolCall: null,
       triggerLeadForm: false,
       timestamp,
