@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
-import { validateLeadForm, normalizePhone } from "./leadValidation.ts";
+import { validateLeadForm, normalizePhone } from "./leadValidation";
 
 describe("lead validation", () => {
   it("accepts a valid lead submission", () => {
