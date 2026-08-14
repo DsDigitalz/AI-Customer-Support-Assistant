@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { message, conversationId, history = [] } = body;
+    const { message, conversationId } = body;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -70,9 +70,7 @@ export async function POST(req: Request) {
     const ragResult = processRAGQuery(cleanMessage);
 
     let reply = ragResult.reply;
-    let toolCall = ragResult.toolCall;
-    let triggerLeadForm = ragResult.triggerLeadForm;
-    let isEscalated = ragResult.isEscalated;
+    const { toolCall, triggerLeadForm, isEscalated } = ragResult;
 
     // 2. If Gemini API Key is configured, enhance output with Gemini LLM
     if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'undefined') {
